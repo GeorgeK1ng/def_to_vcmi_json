@@ -50,9 +50,10 @@ def extract_def(infile,outdir):
         # the third and fourth entry have unknown meaning
         bid,entries,_,_ = struct.unpack("<IIII", f.read(16))
         # a list of 13 character long filenames
+        names[bid] = []
         for j in range(entries):
             name, = struct.unpack("13s", f.read(13))
-            names[bid] = name.decode().split('\x00', 1)[0]
+            names[bid].append(name.decode().split('\x00', 1)[0])
         # a list of offsets
         for j in range(entries):
             offs, = struct.unpack("<I", f.read(4))
@@ -80,7 +81,7 @@ def extract_def(infile,outdir):
             # w,h - width and height, w must be a multiple of 16
             # lm,tm - left and top margin
             _,fmt,fw,fh,w,h,lm,tm = struct.unpack("<IIIIIIii", f.read(32))
-            outname = os.path.join(outdir,"%s"%bn,"%s.png"%(names[bid]))
+            outname = os.path.join(outdir,"%s"%bn,"%s.png"%(names[bid][j]))
             print("writing to %s"%outname)
 
             # SGTWMTA.def and SGTWMTB.def fail here
@@ -170,27 +171,60 @@ def extract_def(infile,outdir):
                 # replace special colors
                 # 0 -> (0,0,0,0)    = full transparency
                 # 1 -> (0,0,0,0x40) = shadow border
-                # 2 -> ???
-                # 3 -> ???
+                # 2 -> Normal Pixeldata
+                # 3 -> Normal Pixeldata
                 # 4 -> (0,0,0,0x80) = shadow body
                 # 5 -> (0,0,0,0)    = selection highlight, treat as full transparency
                 # 6 -> (0,0,0,0x80) = shadow body below selection, treat as shadow body
                 # 7 -> (0,0,0,0x40) = shadow border below selection, treat as shadow border
-                pixrgb = np.array(imrgb)
-                pixp = np.array(imp)
-                pixrgb[pixp == 0] = (0,0,0,0)
-                pixrgb[pixp == 1] = (0,0,0,0x40)
-                pixrgb[pixp == 4] = (0,0,0,0x80)
-                pixrgb[pixp == 5] = (0,0,0,0)
-                pixrgb[pixp == 6] = (0,0,0,0x80)
-                pixrgb[pixp == 7] = (0,0,0,0x40)
-                imrgb = Image.fromarray(pixrgb)
-                im = Image.new('RGBA', (fw,fh), (0,0,0,0))
-                im.paste(imrgb,(lm,tm))
+                # >7 -> Normal Pixeldata
+                def get_img(imrgb, imp, how='normal'):
+                    pixrgb = np.array(imrgb)
+                    pixp = np.array(imp)
+                    if how == 'normal':
+                        pixrgb[pixp == 0] = (0,0,0,0)
+                        pixrgb[pixp == 1] = (0,0,0,0)
+                        pixrgb[pixp == 4] = (0,0,0,0)
+                        pixrgb[pixp == 5] = (0,0,0,0)
+                        pixrgb[pixp == 6] = (0,0,0,0)
+                        pixrgb[pixp == 7] = (0,0,0,0)
+                    elif how == 'shadow':
+                        pixrgb[pixp == 0] = (0,0,0,0)
+                        pixrgb[pixp == 1] = (0,0,0,0x40)
+                        pixrgb[pixp == 2] = (0,0,0,0)
+                        pixrgb[pixp == 3] = (0,0,0,0)
+                        pixrgb[pixp == 4] = (0,0,0,0x80)
+                        pixrgb[pixp == 5] = (0,0,0,0)
+                        pixrgb[pixp == 6] = (0,0,0,0x80)
+                        pixrgb[pixp == 7] = (0,0,0,0x40)
+                        pixrgb[pixp > 7] = (0,0,0,0)
+                    elif how == 'overlay':
+                        if (pixp == 5).sum() == 0:
+                            return None
+                        pixrgb[pixp == 0] = (0,0,0,0)
+                        pixrgb[pixp == 1] = (0,0,0,0)
+                        pixrgb[pixp == 2] = (0,0,0,0)
+                        pixrgb[pixp == 3] = (0,0,0,0)
+                        pixrgb[pixp == 4] = (0,0,0,0)
+                        pixrgb[pixp == 5] = (255,255,255,255)
+                        pixrgb[pixp == 6] = (0,0,0,0)
+                        pixrgb[pixp == 7] = (0,0,0,0)
+                        pixrgb[pixp > 7] = (0,0,0,0)
+                    imrgb = Image.fromarray(pixrgb)
+                    im = Image.new('RGBA', (fw,fh), (0,0,0,0))
+                    im.paste(imrgb,(lm,tm))
+                    return im
+                img_normal = get_img(imrgb, imp, how='normal')
+                img_shadow = get_img(imrgb, imp, how='shadow')
+                img_overlay = get_img(imrgb, imp, how='overlay')
+                img_normal.save(outname)
+                img_shadow.save(outname.replace(".png", "-shadow.png"))
+                if img_overlay is not None: # not saving empty image
+                    img_overlay.save(outname.replace(".png", "-overlay.png"))
             else: # either width or height is zero
                 im = Image.new('RGBA', (fw,fh), (0,0,0,0))
-            im.save(outname)
-            out_json["images"].append({"group":bid, "frame":j, "file":"%s.png"%names[bid]})
+                im.save(outname)
+            out_json["images"].append({"group":bid, "frame":j, "file":"%s.png"%names[bid][j]})
         with open(os.path.join(outdir,"%s.json"%bn),"w+") as o:
             json.dump(out_json,o,indent=4)
     return True

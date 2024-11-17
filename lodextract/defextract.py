@@ -54,7 +54,7 @@ def extract_def(infile,outdir):
         names[bid] = []
         for j in range(entries):
             name, = struct.unpack("13s", f.read(13))
-            names[bid].append(name.decode().split('\x00', 1)[0].replace(".", "_").replace(" ", "_"))
+            names[bid].append(name.split(b'\x00', 1)[0].decode().split('.', 1)[0].replace(" ", "_"))
         # a list of offsets
         for j in range(entries):
             offs, = struct.unpack("<I", f.read(4))

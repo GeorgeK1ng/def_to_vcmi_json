@@ -222,8 +222,8 @@ def extract_def(infile,outdir):
                         pixrgb[pixp == 3] = (0,0,0,0)
                         pixrgb[pixp == 4] = (0,0,0,0)
                         pixrgb[pixp == 5] = (255,255,255,255)
-                        pixrgb[pixp == 6] = (0,0,0,0)
-                        pixrgb[pixp == 7] = (0,0,0,0)
+                        pixrgb[pixp == 6] = (255,255,255,255)
+                        pixrgb[pixp == 7] = (255,255,255,255)
                         pixrgb[pixp > 7] = (0,0,0,0)
                     else:
                         return None

@@ -25,7 +25,7 @@ from lodextract.defextract import extract_def
 from lodextract.makedef import makedef
 
 path = askopenfilename(filetypes=[("H3 def", ".def")])
-if path != "":
+if len(path) > 0:
     foldername = os.path.dirname(path)
     filename = os.path.basename(path)
 

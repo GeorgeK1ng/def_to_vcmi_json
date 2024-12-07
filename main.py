@@ -32,4 +32,4 @@ if len(path) > 0:
                     img.save(os.path.join(foldername, Path(filename).stem, "%s-overlay.png" % frame_base_name))
         
         with open(os.path.join(foldername, "%s.json" % Path(filename).stem), "w+") as o:
-            json.dump(tmp_json, o, indent=4)
+            json.dump(tmp_json, o, indent=4, ensure_ascii=False)

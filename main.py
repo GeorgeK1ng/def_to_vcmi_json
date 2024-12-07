@@ -19,14 +19,33 @@
 from tkinter.filedialog import askopenfilename
 from tkinter import messagebox
 import os
+from pathlib import Path
+import json
 
-from lodextract.lodextract import unpack_lod
-from lodextract.defextract import extract_def
-from lodextract.makedef import makedef
+from homm3data import deffile
 
 path = askopenfilename(filetypes=[("H3 def", ".def")])
 if len(path) > 0:
     foldername = os.path.dirname(path)
     filename = os.path.basename(path)
 
-    extract_def(path, foldername)
+    Path(os.path.join(foldername, Path(filename).stem)).mkdir(parents=True, exist_ok=True)
+
+    tmp_json = { "images": [], "basepath": Path(filename).stem + "/" }
+    with deffile.open(path) as d:
+        for group in d.get_groups():
+            for frame in range(d.get_frame_count(group)):
+                frame_base_name = d.get_image_name(group, frame)
+                tmp_json["images"].append({ "group": group, "frame": frame, "file": "%s.png" % frame_base_name })
+
+                img = d.read_image('normal', group, frame)
+                img.save(os.path.join(foldername, Path(filename).stem, "%s.png" % frame_base_name))
+                img = d.read_image('shadow', group, frame)
+                if img is not None:
+                    img.save(os.path.join(foldername, Path(filename).stem, "%s-shadow.png" % frame_base_name))
+                img = d.read_image('overlay', group, frame)
+                if img is not None:
+                    img.save(os.path.join(foldername, Path(filename).stem, "%s-overlay.png" % frame_base_name))
+        
+        with open(os.path.join(foldername, "%s.json" % Path(filename).stem),"w+") as o:
+            json.dump(tmp_json,o,indent=4)

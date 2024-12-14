@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askopenfilenames
 from tkinter import messagebox
 import os
 from pathlib import Path
@@ -8,8 +8,8 @@ import json
 
 from homm3data import deffile
 
-path = askopenfilename(filetypes=[("H3 def", ".def")])
-if len(path) > 0:
+paths = askopenfilenames(filetypes=[("H3 def", ".def")])
+for path in paths:
     foldername = os.path.dirname(path)
     filename = os.path.basename(path)
 

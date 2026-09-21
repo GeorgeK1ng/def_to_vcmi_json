@@ -12,7 +12,6 @@ import warnings
 from pathlib import Path
 from tkinter import Tk, messagebox
 from tkinter.filedialog import askopenfilenames
-from typing import Optional
 
 from PIL import Image
 from homm3data import deffile
@@ -20,7 +19,7 @@ from homm3data import deffile
 TILE_SIZE = 32
 
 logger_initialized = False
-log_path = Path.cwd() / "def2json.log"
+log_path = str(Path.cwd() / "def2json.log")
 
 
 def ensure_logger():
@@ -49,7 +48,7 @@ def detect_format(path):
         return "d32" if magic == 0x46323344 else "def"
 
 
-def generate_overlay_from_overlay_colors(img: Image.Image) -> Optional[Image.Image]:
+def generate_overlay_from_overlay_colors(img: Image.Image):
     overlay_colors = [(255, 255, 0), (0, 255, 0)]
     overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
     pixels = img.load()

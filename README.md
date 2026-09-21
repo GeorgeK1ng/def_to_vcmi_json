@@ -158,6 +158,12 @@ uses its DEF/D32 API, while those NumPy releases cannot run on the legacy
 Python versions. The separate install keeps the current parser without asking
 pip to replace the legacy-compatible binary dependencies.
 
+Because `homm3data` 0.1.13 uses structural pattern matching, CI then runs the
+repository's syntax backporter over the installed package. This preserves the
+current parser logic while lowering its syntax for Python 3.4 and 3.8. The
+backporter validates every generated module against the Python 3.4 grammar
+before the executable is packaged.
+
 The Windows jobs run on GitHub's maintained `windows-latest` build host. This
 is only the machine which performs the compilation; compatibility of the
 resulting executables is determined by the explicitly installed Python and

@@ -13,6 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up syntax backporter
+        id: backport-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       # XP Professional x64 requires a native AMD64 build; it cannot use the
       # 32-bit artifact when native shell integration is required.
       - name: Install Python 3.4.4 (x64)
@@ -30,6 +36,7 @@ jobs:
           C:\Python34-x64\python.exe -m pip install --upgrade pip==19.1.1 setuptools==43.0.0
           C:\Python34-x64\python.exe -m pip install -r requirements-xp.txt
           C:\Python34-x64\python.exe -m pip install --no-deps -r requirements-homm3data.txt
+          "${{ steps.backport-python.outputs.python-path }}" tools\backport_homm3data.py C:\Python34-x64\Lib\site-packages
           C:\Python34-x64\python.exe -m pip show homm3data | findstr /C:"Version: 0.1.13"
 
       - name: Compile XP x64 executable
@@ -53,6 +60,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up syntax backporter
+        id: backport-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       # Python 3.4.4 is the final official CPython release supporting XP.
       # setup-python no longer distributes it, so install the archived x86 MSI.
       - name: Install Python 3.4.4 (x86)
@@ -68,6 +81,7 @@ jobs:
           C:\Python34\python.exe -m pip install --upgrade pip==19.1.1 setuptools==43.0.0
           C:\Python34\python.exe -m pip install -r requirements-xp.txt
           C:\Python34\python.exe -m pip install --no-deps -r requirements-homm3data.txt
+          "${{ steps.backport-python.outputs.python-path }}" tools\backport_homm3data.py C:\Python34\Lib\site-packages
           C:\Python34\python.exe -m pip show homm3data | findstr /C:"Version: 0.1.13"
 
       - name: Compile XP executable
@@ -91,6 +105,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up syntax backporter
+        id: backport-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       # Python 3.8 is the final CPython series that runs on Windows 7.
       - name: Set up Python 3.8 (x64)
         uses: actions/setup-python@v5
@@ -103,6 +123,7 @@ jobs:
           python -m pip install --upgrade "pip<25"
           python -m pip install -r requirements-win7.txt
           python -m pip install --no-deps -r requirements-homm3data.txt
+          & "${{ steps.backport-python.outputs.python-path }}" tools\backport_homm3data.py "$env:pythonLocation\Lib\site-packages"
           python -m pip show homm3data | findstr /C:"Version: 0.1.13"
 
       - name: Compile with Nuitka (x64)
@@ -137,6 +158,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up syntax backporter
+        id: backport-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Set up Python 3.8 (x86)
         uses: actions/setup-python@v5
         with:
@@ -148,6 +175,7 @@ jobs:
           python -m pip install --upgrade "pip<25"
           python -m pip install -r requirements-win7.txt
           python -m pip install --no-deps -r requirements-homm3data.txt
+          & "${{ steps.backport-python.outputs.python-path }}" tools\backport_homm3data.py "$env:pythonLocation\Lib\site-packages"
           python -m pip show homm3data | findstr /C:"Version: 0.1.13"
 
       - name: Compile with Nuitka (x86)

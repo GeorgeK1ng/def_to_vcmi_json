@@ -151,6 +151,13 @@ each CI job verifies the installed version before compiling. When updating
 `homm3data`, change that single file so no legacy artifact is left on an older
 DEF/D32 parser.
 
+On Windows 7 and XP, `homm3data` is installed with `--no-deps` after the
+platform-compatible Pillow and NumPy wheels. This is intentional: the current
+`homm3data` package declares NumPy 1.26.4 or newer, although the converter only
+uses its DEF/D32 API, while those NumPy releases cannot run on the legacy
+Python versions. The separate install keeps the current parser without asking
+pip to replace the legacy-compatible binary dependencies.
+
 The Windows jobs run on GitHub's maintained `windows-latest` build host. This
 is only the machine which performs the compilation; compatibility of the
 resulting executables is determined by the explicitly installed Python and

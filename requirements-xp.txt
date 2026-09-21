@@ -2,6 +2,7 @@
 # final official CPython release for XP, and PyInstaller 3.2.1 is its final
 # release which can produce XP-compatible bootloaders.
 pillow==5.4.1
-numpy==1.16.2
--r requirements-homm3data.txt
+numpy==1.15.4
+future==0.18.2
+pypiwin32==219
 pyinstaller==3.2.1

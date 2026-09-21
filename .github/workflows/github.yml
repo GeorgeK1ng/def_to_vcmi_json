@@ -29,6 +29,7 @@ jobs:
         run: |
           C:\Python34-x64\python.exe -m pip install --upgrade pip==19.1.1 setuptools==43.0.0
           C:\Python34-x64\python.exe -m pip install -r requirements-xp.txt
+          C:\Python34-x64\python.exe -m pip install --no-deps -r requirements-homm3data.txt
           C:\Python34-x64\python.exe -m pip show homm3data | findstr /C:"Version: 0.1.13"
 
       - name: Compile XP x64 executable
@@ -66,6 +67,7 @@ jobs:
         run: |
           C:\Python34\python.exe -m pip install --upgrade pip==19.1.1 setuptools==43.0.0
           C:\Python34\python.exe -m pip install -r requirements-xp.txt
+          C:\Python34\python.exe -m pip install --no-deps -r requirements-homm3data.txt
           C:\Python34\python.exe -m pip show homm3data | findstr /C:"Version: 0.1.13"
 
       - name: Compile XP executable
@@ -100,6 +102,7 @@ jobs:
         run: |
           python -m pip install --upgrade "pip<25"
           python -m pip install -r requirements-win7.txt
+          python -m pip install --no-deps -r requirements-homm3data.txt
           python -m pip show homm3data | findstr /C:"Version: 0.1.13"
 
       - name: Compile with Nuitka (x64)
@@ -144,6 +147,7 @@ jobs:
         run: |
           python -m pip install --upgrade "pip<25"
           python -m pip install -r requirements-win7.txt
+          python -m pip install --no-deps -r requirements-homm3data.txt
           python -m pip show homm3data | findstr /C:"Version: 0.1.13"
 
       - name: Compile with Nuitka (x86)

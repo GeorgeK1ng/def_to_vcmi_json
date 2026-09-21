@@ -137,7 +137,41 @@ def choose_active_tile(stats, occupied):
     bottom_row = find_bottom_row(occupied)
     if bottom_row is None:
         raise ValueError("No occupied tiles detected.")
-@@ -179,287 +175,307 @@ def build_vcmi_mask(occupied, active_tile):
+
+    width = len(occupied[0])
+    center_x = (width - 1) / 2.0
+    best_score = None
+    best_pos = None
+
+    for x in range(width):
+        if not occupied[bottom_row][x]:
+            continue
+
+        cell = stats[bottom_row][x]
+        score = cell["lower_half_pixels"] * 10 + cell["visible_pixels"] * 2 - abs(x - center_x) * 5
+
+        if best_score is None or score > best_score:
+            best_score = score
+            best_pos = (x, bottom_row)
+
+    if best_pos is None:
+        raise ValueError("Could not determine active tile.")
+
+    return best_pos
+
+
+def build_vcmi_mask(occupied, active_tile):
+    height = len(occupied)
+    width = len(occupied[0])
+    ax, ay = active_tile
+
+    mask = [["0" for _ in range(width)] for _ in range(height)]
+
+    for y in range(height):
+        for x in range(width):
+            if not occupied[y][x]:
+                continue
+            if (x, y) == (ax, ay):
                 mask[y][x] = "A"
             elif y == ay:
                 mask[y][x] = "B"

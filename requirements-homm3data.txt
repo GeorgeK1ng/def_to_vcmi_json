@@ -1,0 +1,4 @@
+# Single source of truth for every target. Update this pin whenever a new
+# homm3data release is adopted; legacy builds must never silently use an older
+# parser than the regular Windows and Linux builds.
+homm3data==0.1.13

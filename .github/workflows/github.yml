@@ -7,27 +7,105 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-win-x64:
-    name: Build for Windows x64
+  build-win-xp-x64:
+    name: Build for Windows XP x64
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.12 (x64)
+      # XP Professional x64 requires a native AMD64 build; it cannot use the
+      # 32-bit artifact when native shell integration is required.
+      - name: Install Python 3.4.4 (x64)
+        shell: powershell
+        run: |
+          Invoke-WebRequest https://www.python.org/ftp/python/3.4.4/python-3.4.4.amd64.msi -OutFile python-3.4.4.amd64.msi
+          Start-Process msiexec.exe -Wait -ArgumentList '/i python-3.4.4.amd64.msi /qn ALLUSERS=1 TARGETDIR=C:\Python34-x64'
+          $python = 'C:\Python34-x64\python.exe'
+          & $python --version
+          if ((& $python -c "import struct; print(struct.calcsize('P') * 8)") -ne '64') { throw 'Python is not 64-bit' }
+
+      - name: Install XP-compatible dependencies
+        shell: cmd
+        run: |
+          C:\Python34-x64\python.exe -m pip install --upgrade pip==19.1.1 setuptools==43.0.0
+          C:\Python34-x64\python.exe -m pip install -r requirements-xp.txt
+          C:\Python34-x64\python.exe -m pip show homm3data | findstr /C:"Version: 0.1.13"
+
+      - name: Compile XP x64 executable
+        shell: cmd
+        run: |
+          C:\Python34-x64\Scripts\pyinstaller.exe --onefile --console --name def2json-win-xp-x64 def2json.py
+
+      - name: Smoke test executable
+        shell: cmd
+        run: dist\def2json-win-xp-x64.exe --help
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: def2json-win-xp-x64
+          path: dist/def2json-win-xp-x64.exe
+
+  build-win-xp-x86:
+    name: Build for Windows XP x86
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Python 3.4.4 is the final official CPython release supporting XP.
+      # setup-python no longer distributes it, so install the archived x86 MSI.
+      - name: Install Python 3.4.4 (x86)
+        shell: powershell
+        run: |
+          Invoke-WebRequest https://www.python.org/ftp/python/3.4.4/python-3.4.4.msi -OutFile python-3.4.4.msi
+          Start-Process msiexec.exe -Wait -ArgumentList '/i python-3.4.4.msi /qn ALLUSERS=1 TARGETDIR=C:\Python34'
+          C:\Python34\python.exe --version
+
+      - name: Install XP-compatible dependencies
+        shell: cmd
+        run: |
+          C:\Python34\python.exe -m pip install --upgrade pip==19.1.1 setuptools==43.0.0
+          C:\Python34\python.exe -m pip install -r requirements-xp.txt
+          C:\Python34\python.exe -m pip show homm3data | findstr /C:"Version: 0.1.13"
+
+      - name: Compile XP executable
+        shell: cmd
+        run: |
+          C:\Python34\Scripts\pyinstaller.exe --onefile --console --name def2json-win-xp-x86 def2json.py
+
+      - name: Smoke test executable
+        shell: cmd
+        run: dist\def2json-win-xp-x86.exe --help
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: def2json-win-xp-x86
+          path: dist/def2json-win-xp-x86.exe
+
+  build-win-x64:
+    name: Build for Windows 7+ x64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Python 3.8 is the final CPython series that runs on Windows 7.
+      - name: Set up Python 3.8 (x64)
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.8.10'
           architecture: 'x64'
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
-          pip install nuitka
+          python -m pip install --upgrade "pip<25"
+          python -m pip install -r requirements-win7.txt
+          python -m pip show homm3data | findstr /C:"Version: 0.1.13"
 
       - name: Compile with Nuitka (x64)
         shell: cmd
         run: |
-          nuitka def2json.py ^
+          python -m nuitka def2json.py ^
             --standalone ^
             --onefile ^
             --enable-plugin=tk-inter ^
@@ -42,35 +120,36 @@ jobs:
 
       - name: Rename EXE
         run: |
-          Rename-Item -Path build\def2json.exe -NewName def2json-win-x64.exe
+          Rename-Item -Path build\def2json.exe -NewName def2json-win7-x64.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: def2json-win-x64
-          path: build/def2json-win-x64.exe
+          name: def2json-win7-x64
+          path: build/def2json-win7-x64.exe
 
   build-win-x86:
-    name: Build for Windows x86
+    name: Build for Windows 7+ x86
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.12 (x86)
+      - name: Set up Python 3.8 (x86)
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.8.10'
           architecture: 'x86'
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
-          pip install nuitka
+          python -m pip install --upgrade "pip<25"
+          python -m pip install -r requirements-win7.txt
+          python -m pip show homm3data | findstr /C:"Version: 0.1.13"
 
       - name: Compile with Nuitka (x86)
         shell: cmd
         run: |
-          nuitka def2json.py ^
+          python -m nuitka def2json.py ^
             --standalone ^
             --onefile ^
             --enable-plugin=tk-inter ^
@@ -85,13 +164,13 @@ jobs:
 
       - name: Rename EXE
         run: |
-          Rename-Item -Path build\def2json.exe -NewName def2json-win-x86.exe
+          Rename-Item -Path build\def2json.exe -NewName def2json-win7-x86.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: def2json-win-x86
-          path: build/def2json-win-x86.exe
+          name: def2json-win7-x86
+          path: build/def2json-win7-x86.exe
 
   build-linux-x64:
     name: Build for Linux x64
@@ -109,6 +188,7 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install nuitka
+          python -m pip show homm3data | grep --fixed-strings "Version: 0.1.13"
 
       - name: Compile with Nuitka
         run: |

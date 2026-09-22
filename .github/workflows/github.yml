@@ -11,11 +11,11 @@ jobs:
     name: Build for Windows XP x64
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up syntax backporter
         id: backport-python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -38,6 +38,7 @@ jobs:
           C:\Python34-x64\python.exe -m pip install --no-deps -r requirements-homm3data.txt
           "${{ steps.backport-python.outputs.python-path }}" tools\backport_homm3data.py C:\Python34-x64\Lib\site-packages
           C:\Python34-x64\python.exe -m pip show homm3data | findstr /C:"Version: 0.1.13"
+          C:\Python34-x64\python.exe -c "from homm3data import deffile"
 
       - name: Compile XP x64 executable
         shell: cmd
@@ -58,11 +59,11 @@ jobs:
     name: Build for Windows XP x86
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up syntax backporter
         id: backport-python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -83,6 +84,7 @@ jobs:
           C:\Python34\python.exe -m pip install --no-deps -r requirements-homm3data.txt
           "${{ steps.backport-python.outputs.python-path }}" tools\backport_homm3data.py C:\Python34\Lib\site-packages
           C:\Python34\python.exe -m pip show homm3data | findstr /C:"Version: 0.1.13"
+          C:\Python34\python.exe -c "from homm3data import deffile"
 
       - name: Compile XP executable
         shell: cmd
@@ -103,17 +105,17 @@ jobs:
     name: Build for Windows 7+ x64
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up syntax backporter
         id: backport-python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
       # Python 3.8 is the final CPython series that runs on Windows 7.
       - name: Set up Python 3.8 (x64)
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.8.10'
           architecture: 'x64'
@@ -125,6 +127,7 @@ jobs:
           python -m pip install --no-deps -r requirements-homm3data.txt
           & "${{ steps.backport-python.outputs.python-path }}" tools\backport_homm3data.py "$env:pythonLocation\Lib\site-packages"
           python -m pip show homm3data | findstr /C:"Version: 0.1.13"
+          python -c "from homm3data import deffile"
 
       - name: Compile with Nuitka (x64)
         shell: cmd
@@ -156,16 +159,16 @@ jobs:
     name: Build for Windows 7+ x86
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up syntax backporter
         id: backport-python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
       - name: Set up Python 3.8 (x86)
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.8.10'
           architecture: 'x86'
@@ -177,6 +180,7 @@ jobs:
           python -m pip install --no-deps -r requirements-homm3data.txt
           & "${{ steps.backport-python.outputs.python-path }}" tools\backport_homm3data.py "$env:pythonLocation\Lib\site-packages"
           python -m pip show homm3data | findstr /C:"Version: 0.1.13"
+          python -c "from homm3data import deffile"
 
       - name: Compile with Nuitka (x86)
         shell: cmd
@@ -209,10 +213,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 

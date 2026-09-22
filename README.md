@@ -164,6 +164,11 @@ current parser logic while lowering its syntax for Python 3.4 and 3.8. The
 backporter validates every generated module against the Python 3.4 grammar
 before the executable is packaged.
 
+The XP dependency set also installs the `typing` backport required by the
+current `homm3data` modules. CI imports `homm3data.deffile` with the actual
+legacy interpreter immediately after conversion, so missing runtime modules
+are detected before the comparatively slow executable packaging step.
+
 The Windows jobs run on GitHub's maintained `windows-latest` build host. This
 is only the machine which performs the compilation; compatibility of the
 resulting executables is determined by the explicitly installed Python and

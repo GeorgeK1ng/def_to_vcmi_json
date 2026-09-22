@@ -4,5 +4,6 @@
 pillow==5.4.1
 numpy==1.15.4
 future==0.18.2
+typing==3.7.4.3
 pypiwin32==219
 pyinstaller==3.2.1

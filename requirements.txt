@@ -1,3 +1,7 @@
 pillow==10.3.0
-numpy==1.26.4
+# 1.24.x is the final NumPy series supporting Python 3.8. Python 3.8 is used
+# deliberately for Windows builds because it is the final CPython series
+# supporting Windows 7. Newer interpreters use the newer NumPy wheel.
+numpy==1.24.4; python_version < "3.9"
+numpy==1.26.4; python_version >= "3.9"
 homm3data==0.1.13

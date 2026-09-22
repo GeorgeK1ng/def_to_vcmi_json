@@ -1,0 +1,3 @@
+# Keep the compiler reproducible. Updating Nuitka must include a Windows 7
+# compatibility test of both produced executables.
+nuitka==2.4.11

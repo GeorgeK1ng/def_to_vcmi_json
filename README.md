@@ -115,6 +115,15 @@ You can use this tool in two ways:
 pip install -r requirements.txt
 ```
 
+On Windows 7 with Python 3.8.10, install `homm3data` without dependency
+resolution after the preceding command. Its declared NumPy minimum no longer
+supports Python 3.8, while the converter uses it with the compatible NumPy
+version pinned in `requirements.txt`:
+
+```bash
+pip install --no-deps homm3data==0.1.13
+```
+
 Then run:
 
 ```bash

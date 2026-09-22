@@ -11,19 +11,19 @@ jobs:
     name: Build for Windows ${{ matrix.arch }} (Windows 7 compatible)
     # Use a currently supported runner, but force Nuitka's pinned MinGW
     # toolchain below instead of tying the binary to the runner's MSVC runtime.
-    runs-on: windows-2022
+    runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
         arch: [x64, x86]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # Python 3.8 is the final CPython release series supporting Windows 7.
       # Keep the patch version explicit so a runner-image update cannot silently
       # change the Windows runtime embedded by Nuitka.
       - name: Set up Python 3.8.10 (${{ matrix.arch }})
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.8.10'
           architecture: ${{ matrix.arch }}
@@ -36,6 +36,10 @@ jobs:
         run: |
           python -m pip install --upgrade "pip<25"
           python -m pip install -r requirements.txt -r requirements-build.txt
+          # homm3data 0.1.13 declares NumPy >=1.26.4, although the converter
+          # only needs APIs available in the final Python 3.8 NumPy release.
+          # Install it without re-resolving dependencies on the Win7 runtime.
+          python -m pip install --no-deps homm3data==0.1.13
 
       - name: Verify Python 3.8 source compatibility
         run: python -m compileall -q def2json.py
@@ -62,7 +66,7 @@ jobs:
         run: Rename-Item -Path build\def2json.exe -NewName def2json-win-${{ matrix.arch }}.exe
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: def2json-win-${{ matrix.arch }}
           path: build/def2json-win-${{ matrix.arch }}.exe
@@ -72,10 +76,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -101,7 +105,7 @@ jobs:
         run: mv build/def2json.bin def2json-linux-x64
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: def2json-linux-x64
           path: def2json-linux-x64

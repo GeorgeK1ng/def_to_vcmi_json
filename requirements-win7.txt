@@ -1,0 +1,8 @@
+# Python 3.8 is the last CPython release which supports Windows 7.  Keep this
+# file separate from the normal development dependencies so future upgrades do
+# not silently raise the minimum supported Windows version.
+pillow==10.3.0
+numpy==1.24.4
+
+# Pin the compiler as well to make the legacy builds reproducible.
+nuitka==2.6.9

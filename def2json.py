@@ -19,7 +19,7 @@ from homm3data import deffile
 TILE_SIZE = 32
 
 logger_initialized = False
-log_path = Path.cwd() / "def2json.log"
+log_path = str(Path.cwd() / "def2json.log")
 
 
 def ensure_logger():
@@ -36,7 +36,7 @@ def ensure_logger():
 
 def custom_warning(message, category, filename, lineno, file=None, line=None):
     ensure_logger()
-    logging.warning(f"{filename}:{lineno} {category.__name__}: {message}")
+    logging.warning("{}:{} {}: {}".format(filename, lineno, category.__name__, message))
 
 
 warnings.showwarning = custom_warning
@@ -48,7 +48,7 @@ def detect_format(path):
         return "d32" if magic == 0x46323344 else "def"
 
 
-def generate_overlay_from_overlay_colors(img: Image.Image) -> Image.Image | None:
+def generate_overlay_from_overlay_colors(img: Image.Image):
     overlay_colors = [(255, 255, 0), (0, 255, 0)]
     overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
     pixels = img.load()
@@ -91,7 +91,7 @@ def find_alpha_bbox_tiles(img: Image.Image, tile_size: int = TILE_SIZE, min_visi
     ]
     if not occupied_positions:
         raise ValueError(
-            f"Image has no tile containing at least {min_visible_pixels} visible pixels."
+            "Image has no tile containing at least {} visible pixels.".format(min_visible_pixels)
         )
 
     xs, ys = zip(*occupied_positions)
@@ -224,7 +224,7 @@ def generate_vcmi_template_from_png(png_source, animation_name=None, animation_e
 
     stem = source_stem.upper()
     object_name = (animation_name or stem).upper()
-    animation_file = f"{object_name}.{animation_extension.lower()}"
+    animation_file = "{}.{}".format(object_name, animation_extension.lower())
 
     return {
         object_name: {
@@ -252,18 +252,18 @@ def export_frame_images(d, filetype, output_dir, only_config=False, ignore_filen
             real_frame = frame
 
             if ignore_group and ignore_filename:
-                image_name = f"0_{global_frame_index}"
+                image_name = "0_{}".format(global_frame_index)
             elif ignore_group:
-                image_name = f"0_{d.get_image_name(group, frame)}"
+                image_name = "0_{}".format(d.get_image_name(group, frame))
             elif ignore_filename:
-                image_name = f"{group}_{filename_counts[group]}"
+                image_name = "{}_{}".format(group, filename_counts[group])
             else:
                 image_name = d.get_image_name(group, frame)
 
             entry = {
                 "group": real_group,
                 "frame": global_frame_index if filetype == "d32" else real_frame,
-                "file": f"{image_name}.png"
+                "file": "{}.png".format(image_name)
             }
 
             try:
@@ -277,7 +277,7 @@ def export_frame_images(d, filetype, output_dir, only_config=False, ignore_filen
                         shadow_img = None if merge_shadow else d.read_image("shadow", group, frame)
                         overlay_img = d.read_image("overlay", group, frame)
 
-                        png_path = os.path.join(output_dir, f"{image_name}.png")
+                        png_path = os.path.join(output_dir, "{}.png".format(image_name))
                         if merge_shadow:
                             combined = d.read_image("combined", group, frame)
                             if combined is None:
@@ -286,14 +286,14 @@ def export_frame_images(d, filetype, output_dir, only_config=False, ignore_filen
                         else:
                             normal_img.save(png_path)
                             if shadow_img:
-                                shadow_img.save(os.path.join(output_dir, f"{image_name}-shadow.png"))
+                                shadow_img.save(os.path.join(output_dir, "{}-shadow.png".format(image_name)))
 
                         if overlay_img:
-                            overlay_img.save(os.path.join(output_dir, f"{image_name}-overlay.png"))
+                            overlay_img.save(os.path.join(output_dir, "{}-overlay.png".format(image_name)))
                         elif overlay_from_colours and normal_img:
                             generated_overlay = generate_overlay_from_overlay_colors(normal_img)
                             if generated_overlay:
-                                generated_overlay.save(os.path.join(output_dir, f"{image_name}-overlay.png"))
+                                generated_overlay.save(os.path.join(output_dir, "{}-overlay.png".format(image_name)))
 
                     elif filetype == "d32":
                         img = d.read_image("normal", group, frame)
@@ -302,22 +302,22 @@ def export_frame_images(d, filetype, output_dir, only_config=False, ignore_filen
                         if global_frame_index == template_frame:
                             template_image = img.copy()
 
-                        png_path = os.path.join(output_dir, f"{image_name}.png")
+                        png_path = os.path.join(output_dir, "{}.png".format(image_name))
                         img.save(png_path)
 
                         if overlay_from_colours:
                             overlay = generate_overlay_from_overlay_colors(img)
                             if overlay:
-                                overlay.save(os.path.join(output_dir, f"{image_name}-overlay.png"))
+                                overlay.save(os.path.join(output_dir, "{}-overlay.png".format(image_name)))
 
                 images.append(entry)
                 exported_frames.append(not only_config)
 
             except Exception as e:
                 ensure_logger()
-                errmsg = f"Failed to process group {group}, frame {frame}: {e}"
+                errmsg = "Failed to process group {}, frame {}: {}".format(group, frame, e)
                 logging.error(errmsg)
-                print(f"[ERROR] {errmsg}")
+                print("[ERROR] {}".format(errmsg))
                 exported_frames.append(False)
 
             filename_counts[group] += 1
@@ -335,7 +335,7 @@ def process_def_file(path, filetype, only_config=False, ignore_filename=False, i
     temp_dir_obj = None
     export_dir = output_dir
     if mask_only:
-        temp_dir_obj = tempfile.TemporaryDirectory(prefix=f"{stem}_", suffix="_vcmi_template")
+        temp_dir_obj = tempfile.TemporaryDirectory(prefix="{}_".format(stem), suffix="_vcmi_template")
         export_dir = temp_dir_obj.name
     else:
         Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -355,7 +355,7 @@ def process_def_file(path, filetype, only_config=False, ignore_filename=False, i
             )
 
         if not mask_only:
-            json_path = os.path.join(foldername, f"{stem}.json")
+            json_path = os.path.join(foldername, "{}.json".format(stem))
             json_data = {
                 "basepath": stem + "/",
                 "images": images
@@ -371,19 +371,19 @@ def process_def_file(path, filetype, only_config=False, ignore_filename=False, i
                     print("[WARN] No PNG files were generated, template was not created.")
             else:
                 if template_frame < 0 or template_frame >= len(exported_frames):
-                    raise ValueError(f"template_frame {template_frame} is out of range, frame count is {len(exported_frames)}")
+                    raise ValueError("template_frame {} is out of range, frame count is {}".format(template_frame, len(exported_frames)))
                 if not exported_frames[template_frame]:
-                    raise ValueError(f"frame {template_frame} was not exported successfully")
+                    raise ValueError("frame {} was not exported successfully".format(template_frame))
 
                 template = generate_vcmi_template_from_png(
                     template_image,
                     animation_name=stem.upper(),
                     animation_extension=filetype,
                 )
-                template_json_path = os.path.join(foldername, f"{stem}.template.json")
+                template_json_path = os.path.join(foldername, "{}.template.json".format(stem))
                 with open(template_json_path, "w", encoding="utf-8") as o:
                     json.dump(template, o, indent=4, ensure_ascii=False)
-                print(f"[INFO] VCMI template written to {template_json_path}")
+                print("[INFO] VCMI template written to {}".format(template_json_path))
 
     finally:
         if temp_dir_obj is not None:
@@ -446,12 +446,12 @@ def main():
             if args.overlay:
                 flags.append("overlay")
             if args.vcmi_template:
-                flags.append(f"vcmi-template frame={args.template_frame}")
+                flags.append("vcmi-template frame={}".format(args.template_frame))
             if args.maskonly:
                 flags.append("maskonly")
 
-            suffix = f" [{' | '.join(flags)}]" if flags else ""
-            print(f"[INFO] Processing {path} ({filetype.upper()}){suffix}")
+            suffix = " [{}]".format(" | ".join(flags)) if flags else ""
+            print("[INFO] Processing {} ({}){}".format(path, filetype.upper(), suffix))
 
             process_def_file(
                 path,
@@ -468,11 +468,11 @@ def main():
 
         except Exception as e:
             ensure_logger()
-            logging.error(f"Error while processing '{path}': {e}")
-            print(f"[ERROR] Failed to process {path}: {e}")
+            logging.error("Error while processing '{}': {}".format(path, e))
+            print("[ERROR] Failed to process {}: {}".format(path, e))
             if used_file_dialog:
                 try:
-                    messagebox.showerror("Error", f"Failed to process {path}:\n{e}")
+                    messagebox.showerror("Error", "Failed to process {}:\n{}".format(path, e))
                 except Exception:
                     pass
 

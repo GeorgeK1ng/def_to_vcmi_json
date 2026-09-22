@@ -1,0 +1,9 @@
+# Frozen toolchain for the 32-bit and 64-bit Windows XP artifacts. Python 3.4.4 is the
+# final official CPython release for XP, and PyInstaller 3.2.1 is its final
+# release which can produce XP-compatible bootloaders.
+pillow==5.4.1
+numpy==1.15.4
+future==0.18.2
+typing==3.7.4.3
+pypiwin32==219
+pyinstaller==3.2.1

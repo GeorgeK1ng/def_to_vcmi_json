@@ -105,11 +105,23 @@ You can use this tool in two ways:
 
 ### ✅ Option 1: Python script
 
-- Requires Python 3
+- Requires Python 3.8 or newer on currently supported Windows versions.
+- On Windows 7, use **Windows 7 SP1 with all platform updates** and the final
+  Windows 7-compatible Python release, **Python 3.8.10**. Newer Python releases
+  do not support Windows 7.
 - Install dependencies from `requirements.txt`:
 
 ```bash
 pip install -r requirements.txt
+```
+
+On Windows 7 with Python 3.8.10, install `homm3data` without dependency
+resolution after the preceding command. Its declared NumPy minimum no longer
+supports Python 3.8, while the converter uses it with the compatible NumPy
+version pinned in `requirements.txt`:
+
+```bash
+pip install --no-deps homm3data==0.1.13
 ```
 
 Then run:
@@ -123,10 +135,14 @@ python def2json.py
 If you don't have Python installed, use the provided standalone executable:
 
 - No installation needed
+- Windows artifacts are built with Python 3.8.10 and a pinned compiler so that
+  **Windows 7 SP1 is the minimum supported Windows version**. Use the x86 build
+  on 32-bit Windows and the x64 build on 64-bit Windows.
+- Keeping Windows 7 fully updated is recommended; in particular, the Universal
+  C Runtime must be installed.
 - Just double-click or run from command line:
 
 ```bash
 ./def2json.exe          # on Windows
 ./def2json              # on Linux/
 ```
-

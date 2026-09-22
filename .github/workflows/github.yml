@@ -7,29 +7,50 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-win-x64:
-    name: Build for Windows x64
+  build-windows:
+    name: Build for Windows ${{ matrix.arch }} (Windows 7 compatible)
+    # Use a currently supported runner, but force Nuitka's pinned MinGW
+    # toolchain below instead of tying the binary to the runner's MSVC runtime.
     runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, x86]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Set up Python 3.12 (x64)
-        uses: actions/setup-python@v5
+      # Python 3.8 is the final CPython release series supporting Windows 7.
+      # Keep the patch version explicit so a runner-image update cannot silently
+      # change the Windows runtime embedded by Nuitka.
+      - name: Set up Python 3.8.10 (${{ matrix.arch }})
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
-          architecture: 'x64'
+          python-version: '3.8.10'
+          architecture: ${{ matrix.arch }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-build.txt
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
-          pip install nuitka
+          python -m pip install --upgrade "pip<25"
+          python -m pip install -r requirements.txt -r requirements-build.txt
+          # homm3data 0.1.13 declares NumPy >=1.26.4, although the converter
+          # only needs APIs available in the final Python 3.8 NumPy release.
+          # Install it without re-resolving dependencies on the Win7 runtime.
+          python -m pip install --no-deps homm3data==0.1.13
 
-      - name: Compile with Nuitka (x64)
+      - name: Verify Python 3.8 source compatibility
+        run: python -m compileall -q def2json.py
+
+      - name: Compile with Nuitka
         shell: cmd
         run: |
-          nuitka def2json.py ^
+          python -m nuitka def2json.py ^
             --standalone ^
             --onefile ^
+            --mingw64 ^
             --enable-plugin=tk-inter ^
             --output-dir=build ^
             --windows-console-mode=attach ^
@@ -41,74 +62,31 @@ jobs:
         run: build\def2json.exe --help
 
       - name: Rename EXE
-        run: |
-          Rename-Item -Path build\def2json.exe -NewName def2json-win-x64.exe
+        shell: pwsh
+        run: Rename-Item -Path build\def2json.exe -NewName def2json-win-${{ matrix.arch }}.exe
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
-          name: def2json-win-x64
-          path: build/def2json-win-x64.exe
-
-  build-win-x86:
-    name: Build for Windows x86
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python 3.12 (x86)
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          architecture: 'x86'
-
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install nuitka
-
-      - name: Compile with Nuitka (x86)
-        shell: cmd
-        run: |
-          nuitka def2json.py ^
-            --standalone ^
-            --onefile ^
-            --enable-plugin=tk-inter ^
-            --output-dir=build ^
-            --windows-console-mode=attach ^
-            --assume-yes-for-downloads
-
-      # Starting the binary catches missing packaged imports before publishing it.
-      - name: Smoke test executable
-        shell: cmd
-        run: build\def2json.exe --help
-
-      - name: Rename EXE
-        run: |
-          Rename-Item -Path build\def2json.exe -NewName def2json-win-x86.exe
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: def2json-win-x86
-          path: build/def2json-win-x86.exe
+          name: def2json-win-${{ matrix.arch }}
+          path: build/def2json-win-${{ matrix.arch }}.exe
 
   build-linux-x64:
     name: Build for Linux x64
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install nuitka
+          pip install -r requirements-build.txt
 
       - name: Compile with Nuitka
         run: |
@@ -127,7 +105,7 @@ jobs:
         run: mv build/def2json.bin def2json-linux-x64
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: def2json-linux-x64
           path: def2json-linux-x64
